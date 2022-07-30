@@ -1,8 +1,10 @@
 const express = require("express");
+const multer = require("multer");
 const {ObjectId} = require("mongodb");
 const { db } = require("./models");
 
-const app = express()
+const upload = multer({ dest: 'images'});
+const app = express();
 const Event = db.collection('events');
 
 
@@ -22,6 +24,7 @@ app.get('/api/v3/app/events', async(req, res) => {
             const event = await Event.find({_id}).toArray();
             if(event.length > 0){
                 res.send(event);
+                // console.log(event)
             }else{
                 throw new Error();
             }
@@ -40,8 +43,9 @@ app.get('/api/v3/app/events', async(req, res) => {
 });
 
 // Creates a new event and returns the id of the newly created event
-app.post("/api/v3/app/events", (req, res) => {
-    event_params = req.body;
+app.post("/api/v3/app/events", upload.single('image'), (req, res) => {
+    const {attendees, ...event_params} = req.body;
+
     try{
         Event.insertOne(event_params, (err, result) => {
             if(err){
@@ -54,7 +58,6 @@ app.post("/api/v3/app/events", (req, res) => {
     }catch(err){
         res.status(400).send(err);
     }
-    
 })
 
 // Updates an entire event with new data
