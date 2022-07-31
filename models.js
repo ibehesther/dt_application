@@ -8,8 +8,7 @@ const event = db.collection('events');
 
 async function main() {
     await client.connect();
-    console.log("Connection established!");
-    return "Done!";
+    return "Connection established!";
 }
 
 main()
