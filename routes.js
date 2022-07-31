@@ -13,11 +13,12 @@ app.use(express.json());
 
 // Gets an event by its unique id
 app.get('/api/v3/app/events', async(req, res) => {
-    var uid = req.query.id;
+    var _id = req.query.id;
     const {type, limit, page} = req.query;
-    if(uid){
+    if(_id){
         try{
-            const event = await Event.find({uid}).toArray();
+            _id = ObjectId(_id)
+            const event = await Event.find({_id}).toArray();
             if(event.length > 0){
                 res.send(event);
             }else{
@@ -26,7 +27,8 @@ app.get('/api/v3/app/events', async(req, res) => {
         }catch(err) {
             res.status(404).send(err);
         }
-    }else{
+    }
+    else{
         const startPage = (page - 1) * limit;
         const endPage = startPage + limit;
         if (type == "latest"){
@@ -35,6 +37,7 @@ app.get('/api/v3/app/events', async(req, res) => {
             var events = await Event.find().sort({_id: 1}).toArray();
         }
         events = events.slice(startPage, endPage);
+        console.log(events)
         res.send({events});
     }
 
@@ -62,13 +65,13 @@ app.post("/api/v3/app/events", upload.single('files[image]'), (req, res) => {
 
 // Updates an entire event with new data
 app.put('/api/v3/app/events/:id', upload.single('files[image]'), async(req, res) => {
-    const uid = req.params.id;
+    const _id = ObjectId(req.params.id);
     var {rigor_rank, attendees} = req.body;
     req.body.rigor_rank = parseInt(rigor_rank);
     req.body.attendees = eval('(' + attendees + ')');
     console.log(req.body.attendees)
     try{
-        const updated_event = await Event.updateOne({uid}, {$set: {
+        const updated_event = await Event.updateOne({_id}, {$set: {
             ...req.body
         }});
        res.send(updated_event);
@@ -79,10 +82,9 @@ app.put('/api/v3/app/events/:id', upload.single('files[image]'), async(req, res)
 
 // Delete event by unique id
 app.delete('/api/v3/app/events/:id', async(req, res) => {
-    const uid = req.params.id;
-    console.log(uid)
+    const _id = ObjectId(req.params.id);
     try{
-        const event = await Event.deleteOne({uid});
+        const event = await Event.deleteOne({_id});
         if (event.deletedCount !== 0){
             res.send('Event deleted successfully!');
         }else{
