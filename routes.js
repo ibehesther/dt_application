@@ -14,7 +14,9 @@ app.use(express.json());
 // Gets an event by its unique id
 app.get('/api/v3/app/events', async(req, res) => {
     var _id = req.query.id;
-    const {type, limit, page} = req.query;
+    var {type, limit, page} = req.query;
+    limit = parseInt(limit);
+    page = parseInt(page);
     if(_id){
         try{
             _id = ObjectId(_id)
@@ -37,7 +39,6 @@ app.get('/api/v3/app/events', async(req, res) => {
             var events = await Event.find().sort({_id: 1}).toArray();
         }
         events = events.slice(startPage, endPage);
-        console.log(events)
         res.send({events});
     }
 
@@ -69,7 +70,6 @@ app.put('/api/v3/app/events/:id', upload.single('files[image]'), async(req, res)
     var {rigor_rank, attendees} = req.body;
     req.body.rigor_rank = parseInt(rigor_rank);
     req.body.attendees = eval('(' + attendees + ')');
-    console.log(req.body.attendees)
     try{
         const updated_event = await Event.updateOne({_id}, {$set: {
             ...req.body
